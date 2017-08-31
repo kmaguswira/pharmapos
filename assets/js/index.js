@@ -1,8 +1,25 @@
 const {remote} = require('electron');
+const app = angular.module('app', ['ngRoute']);
 
-let closeWindow = () =>{
+console.log('start');
+
+app.config(($routeProvider)=>{
+  console.log('0');
+  $routeProvider.when('/', {
+    templateUrl: __dirname+'/assets/components/home/home.html',
+    controller:'homeController'
+  });
+});
+
+app.controller('navController', ($scope)=>{
+  console.log("1")
   let window = remote.getCurrentWindow();
-  window.close();
-};
+  $scope.close = () => {
+    console.log("2");
+    window.close();
+  };
+});
 
-document.getElementById('close-window').addEventListener('click', closeWindow);
+app.controller('homeController', ($scope)=>{
+
+});
