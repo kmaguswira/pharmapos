@@ -1,2 +1,43 @@
 <section class="tab-pane active fade in content" id="inventory">
+  <div class="col-xs-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <div id="custom-search-input">
+            <div class="input-group col-md-12">
+                <input type="text" class="form-control input" placeholder="Search for..." ng-model="inventory" />
+                <span class="input-group-btn">
+                    <button class="btn btn-info btn-lg" type="button">
+                      <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+      </div>
+      <div class="panel-body inventory">
+          <div class="list-group">
+            <a class="list-group-item" style="border-radius:0px;" ng-repeat="x in inventories | filter:inventory">
+    					<div class="media">
+    			      <span class="pull-right">
+                  <span class="label label-warning" style="margin-right:7px;">{{ x.updatedAt }}</span>
+                  <span class="glyphicon btn-glyphicon glyphicon-pencil img-circle text-info btn-group" ></span>
+                  <span class="glyphicon btn-glyphicon glyphicon-remove img-circle text-danger btn-group"></span>
+                </span>
+    						<div class="pull-left">
+    							<img class="media-object" src="http://placehold.it/70x50" alt="Image">
+    						</div>
+    						<div class="media-body">
+    							<h4 class="media-heading">{{ x.name }} ({{ x.id }})</h4>
+                  <span class="label label-default" style="margin-right:7px;">St : {{ x.stock }}</span>
+                  <span class="label label-primary" style="margin-right:7px;">BP : {{ x.base_price }}</span>
+                  <span class="label label-success" style="margin-right:7px;">SP : {{ x.sell_price }}</span>
+                  <span class="label label-info" style="margin-right:7px;">TS : {{ x.total }}</span>
+    						</div>
+    					</div>
+    			    <div class="clearfix"></div>
+  			    </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button type="button" class="btn btn-success btn-circle btn-add"><i class="glyphicon glyphicon-plus"></i></button>
 </section>

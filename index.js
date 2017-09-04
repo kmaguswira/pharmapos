@@ -1,5 +1,9 @@
+'use strict'
+
 const {app, BrowserWindow} = require('electron');
 const url = require('url');
+
+require('electron-reload')(__dirname);
 
 let win = null;
 let boot = () => {

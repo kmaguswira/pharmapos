@@ -16,6 +16,7 @@
   "author": "kmaguswira",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^1.7.5"
+    "electron": "^1.7.5",
+    "electron-reload": "^1.2.1"
   }
 }
