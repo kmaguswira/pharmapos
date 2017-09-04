@@ -15,6 +15,10 @@ app.config(($routeProvider)=>{
     templateUrl: __dirname+'/assets/components/inventory/index.html',
     controller:'inventoryController'
   })
+  .when('/config', {
+    templateUrl: __dirname+'/assets/components/config/index.html',
+    controller:'configController'
+  })
   .when('/feedback', {
     templateUrl: __dirname+'/assets/components/feedback/index.html',
     controller:'feedbackController'
@@ -38,6 +42,15 @@ app.controller('posController', function($scope){
   $scope.testing = () => {
     alert("pos");
   };
+  $scope.inventories = [
+    {id:"123", name:"name1", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+    {id:"123", name:"name2", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+    {id:"123", name:"name3", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+    {id:"123", name:"name4", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+    {id:"123", name:"name5", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+    {id:"123", name:"name6", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+    {id:"123", name:"name7", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
+  ];
 });
 
 app.controller('inventoryController', function($scope){
@@ -53,6 +66,12 @@ app.controller('inventoryController', function($scope){
     {id:"123", name:"name6", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
     {id:"123", name:"name7", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
   ];
+});
+
+app.controller('configController', function($scope){
+  $scope.testing = () => {
+    alert("config");
+  };
 });
 
 app.controller('feedbackController', function($scope){

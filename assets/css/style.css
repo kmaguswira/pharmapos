@@ -189,3 +189,35 @@ span.btn-group{
   padding-right: 7px;
   cursor: pointer;
 }
+
+/**/
+.pos{
+  padding: 0px;
+  height: 240px;
+  overflow-y: scroll;
+}
+
+.pos::-webkit-scrollbar{
+  width: 5px;
+  height: 8px;
+  background-color: #aaa;
+}
+
+.pos::-webkit-scrollbar-thumb {
+    background: #000;
+}
+
+.panel-body.pos-invoice{
+  height: 396px;
+  overflow-y: scroll;
+}
+
+.panel-body.pos-invoice::-webkit-scrollbar{
+  width: 5px;
+  height: 8px;
+  background-color: #aaa;
+}
+
+.panel-body.pos-invoice::-webkit-scrollbar-thumb {
+    background: #000;
+}
