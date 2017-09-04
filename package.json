@@ -4,6 +4,7 @@
   "description": "point of sale for pharmacy",
   "main": "index.js",
   "scripts": {
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -13,5 +14,8 @@
     "node-js"
   ],
   "author": "kmaguswira",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^1.7.5"
+  }
 }

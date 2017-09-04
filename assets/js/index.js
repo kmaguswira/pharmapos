@@ -1,25 +1,33 @@
 const {remote} = require('electron');
 const app = angular.module('app', ['ngRoute']);
 
-console.log('start');
-
 app.config(($routeProvider)=>{
-  console.log('0');
-  $routeProvider.when('/', {
-    templateUrl: __dirname+'/assets/components/home/home.html',
-    controller:'homeController'
+  $routeProvider
+  .when('/', {
+    templateUrl: __dirname+'/assets/components/dashboard/index.html',
+    controller:'dashboardController'
+  })
+  .when('/pos', {
+    templateUrl: __dirname+'/assets/components/pos/index.html',
+    // controller:'posController'
+  })
+  .when('/inventory', {
+    templateUrl: __dirname+'/assets/components/inventory/index.html',
+    //controller:'inventoryController'
+  })
+  .when('/feedback', {
+    templateUrl: __dirname+'/assets/components/feedback/index.html',
+    //controller:'feedbackController'
   });
 });
 
 app.controller('navController', ($scope)=>{
-  console.log("1")
   let window = remote.getCurrentWindow();
   $scope.close = () => {
-    console.log("2");
     window.close();
   };
 });
 
-app.controller('homeController', ($scope)=>{
-
+app.controller('dashboardController', ($scope)=>{
+  console.log('test');
 });
