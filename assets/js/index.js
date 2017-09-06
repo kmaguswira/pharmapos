@@ -42,6 +42,9 @@ app.controller('posController', function($scope){
   $scope.testing = () => {
     alert("pos");
   };
+  $scope.addToCart = (i) => {
+    console.log($scope.inventories[i]);
+  };
   $scope.inventories = [
     {id:"123", name:"name1", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
     {id:"123", name:"name2", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},

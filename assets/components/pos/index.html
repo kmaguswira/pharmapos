@@ -10,7 +10,7 @@
       </div>
       <div class="panel-body pos">
         <div class="list-group">
-          <a class="list-group-item" style="border-radius:0px; cursor:pointer;" ng-repeat="x in inventories | filter:inventory">
+          <a class="list-group-item" style="border-radius:0px; cursor:pointer;" ng-click='addToCart($index)' ng-repeat="x in inventories | filter:inventory">
             <div class="media">
               <span class="pull-right">
                 <span class="label label-warning" style="margin-right:7px; font-size:10px;">{{ x.stock }}</span>
@@ -46,16 +46,16 @@
         <center>Inv</center>
       </div>
       <div class="panel-body pos-invoice">
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
-        <br>
+        <div class="col-xs-2"></div>
+        <div class="col-xs-4">
+          <center><strong>Prd</strong></center><br>
+        </div>
+        <div class="col-xs-2">
+          <center><strong>Amnt</strong></center><br>
+        </div>
+        <div class="col-xs-4">
+          <center><strong>Pr</strong></center><br>
+        </div>
       </div>
     </div>
   </div>
