@@ -10,7 +10,7 @@
       </div>
       <div class="panel-body pos">
         <div class="list-group">
-          <a class="list-group-item" style="border-radius:0px; cursor:pointer;" ng-click='addToCart($index)' ng-repeat="x in inventories | filter:inventory" ng-if="!cart[$index].active">
+          <a class="list-group-item" style="border-radius:0px; cursor:pointer;" ng-click='addToCart(inventories.indexOf(x))' ng-repeat="x in inventories | filter:inventory" ng-if="!cart[inventories.indexOf(x)].active">
             <div class="media">
               <span class="pull-right">
                 <span class="label label-warning" style="margin-right:7px; font-size:10px;">{{ x.stock }}</span>
@@ -30,12 +30,12 @@
     </div>
     <div class="panel panel-default">
       <div class="panel-heading">
-        Test
+        Tools
       </div>
-      <div class="panel-body">
-        <br>
-        <br>
-        <br>
+      <div class="panel-body" style="height:90px">
+        <button type="button" class="btn btn-default btn-circle btn-lg" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-list"></i></button>
+        <button type="button" class="btn btn-primary btn-circle btn-lg" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-barcode"></i></button>
+        <button type="button" class="btn btn-info btn-circle btn-lg" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-shopping-cart"></i></button>
       </div>
     </div>
   </div>
@@ -46,21 +46,30 @@
         <center>Inv</center>
       </div>
       <div class="panel-body pos-invoice">
-        <table>
+        <table class="table table-hover">
           <thead>
-            <td></td>
+            <td>#</td>
             <td>Prd</td>
             <td>Amnt</td>
             <td>Pr</td>
           </thead>
           <tbody>
-            <tr ng-repeat="x in inventories" ng-if="cart[$index].active">
-              <td></td>
-              <td>{{x.name}}</td>
-              <td><input type="number" ng-model="price" ng-change="updatePrice($index, x.name)" id="{{x.name}}" value="{{cart[$index].qt}}"  min="1" max="{{x.stock}}"></td>
-              <td>{{ cart[$index].price }}</td>
+            <tr ng-repeat="x in inventories" ng-if="cart[inventories.indexOf(x)].active">
+              <td width='10%'><button type="button" ng-click="removeItem(inventories.indexOf(x))" class="btn btn-danger btn-xs" style="padding: 1px 3px; font-size: 7px;"><span class="glyphicon glyphicon-remove" aria-hidden="true" ></span></button></td>
+              <td width='40%'>{{x.name}}</td>
+              <td width='20%'><input required style="height:24px; width:80%" type="number" class="form-control input-sm" ng-model="price" ng-change="updatePrice(inventories.indexOf(x), x.name)" id="{{x.name}}" value="{{cart[inventories.indexOf(x)].qt}}" min="1" max="{{x.stock}}"></td>
+              <td width='30%'>{{ cart[$index].price | currency : "Rp. " }}</td>
             </tr>
           </tbody>
+          <tfoot>
+              <tr>
+                <td colspan="3"><center>Total</center></td>
+                <td>{{ totalPrice | currency : "Rp. "}}</td>
+              </tr>
+              <tr>
+                <td colspan="4"><center><button class="btn btn-primary">Checkout</button></center></td>
+              </tr>
+          </tfoot>
         </table>
       </div>
     </div>
