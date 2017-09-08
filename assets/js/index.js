@@ -83,7 +83,8 @@ app.controller('posController', function($scope){
 
 app.controller('inventoryController', function($scope){
   $scope.image="";
-  $scope.products = db.products.find();
+  let productsTemp = db.products.find();
+  $scope.products = productsTemp;
   document.getElementById("image").addEventListener('change', function(){
     if(this.files[0]){
       // var img = document.getElementById('image-prev');
@@ -101,25 +102,32 @@ app.controller('inventoryController', function($scope){
       $scope.newProduct.sell_price = angular.element('#sellPrice').val();
       $scope.newProduct.createdAt = new Date().toISOString().substring(0,10);
       $scope.newProduct.updatedAt = $scope.newProduct.createdAt;
-      console.log(newProduct)
       let obj = $scope.products.find(o => o.name === $scope.newProduct.name);
-
       if(obj){
-        db.products.update({'_id':obj._id},{
+        $scope.products.push({
           'name':$scope.newProduct.name,
           'quantity':$scope.newProduct.quantity+obj.quantity,
           'base_price':$scope.newProduct.base_price,
           'sell_price':$scope.newProduct.sell_price,
+          'status':true,
+          'updatedAt':new Date().toISOString().substring(0,10),
+        });
+        let status = db.products.update({'_id':obj._id},{
+          'name':$scope.newProduct.name,
+          'quantity':$scope.newProduct.quantity+obj.quantity,
+          'base_price':$scope.newProduct.base_price,
+          'sell_price':$scope.newProduct.sell_price,
+          'status':true,
           'updatedAt':new Date().toISOString().substring(0,10),
         },{'multi':false, 'upsert':false});
       }else{
         fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
-        db.products.save($scope.newProduct);
+        db.products.save($scope.newProduct)
       }
+      angular.element("#cancel-btn").click();
     }
     angular.element('#newProduct_value').focus();
   };
-
 });
 
 app.controller('configController', function($scope){
