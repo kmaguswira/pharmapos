@@ -1,6 +1,7 @@
 const {remote} = require('electron');
 const app = angular.module('app', ['ngRoute', 'angucomplete']);
 const db = require('diskdb').connect(__dirname+'/store', ['products','sales','settings']);
+const fs = require('fs');
 
 app.config(($routeProvider)=>{
   $routeProvider
@@ -81,18 +82,44 @@ app.controller('posController', function($scope){
 });
 
 app.controller('inventoryController', function($scope){
-  $scope.products = [
-    {id:"123", name:"name1", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-    {id:"123", name:"name2", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-    {id:"123", name:"name3", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-    {id:"123", name:"name4", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-    {id:"123", name:"name5", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-    {id:"123", name:"name6", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-    {id:"123", name:"name7", stock:"30", base_price:"20000", sell_price:"30000", updatedAt:"10000"},
-  ];
+  $scope.image="";
+  $scope.products = db.products.find();
+  document.getElementById("image").addEventListener('change', function(){
+    if(this.files[0]){
+      // var img = document.getElementById('image-prev');
+      // img.src = URL.createObjectURL(this.files[0]);
+      $scope.image=this.files[0];
+    };
+  })
   $scope.addNewProduct = () => {
-    console.log('test')
+    if(angular.element('#newProduct_value').val()!==""){
+      $scope.newProduct = {};
+      $scope.newProduct.imagePath = __dirname+'/assets/images/'+Date.parse(new Date)+$scope.image.name;
+      $scope.newProduct.base_price = angular.element('#basePrice').val();
+      $scope.newProduct.name = angular.element('#newProduct_value').val();
+      $scope.newProduct.quantity = angular.element('#quantity').val();
+      $scope.newProduct.sell_price = angular.element('#sellPrice').val();
+      $scope.newProduct.createdAt = new Date().toISOString().substring(0,10);
+      $scope.newProduct.updatedAt = $scope.newProduct.createdAt;
+      console.log(newProduct)
+      let obj = $scope.products.find(o => o.name === $scope.newProduct.name);
+
+      if(obj){
+        db.products.update({'_id':obj._id},{
+          'name':$scope.newProduct.name,
+          'quantity':$scope.newProduct.quantity+obj.quantity,
+          'base_price':$scope.newProduct.base_price,
+          'sell_price':$scope.newProduct.sell_price,
+          'updatedAt':new Date().toISOString().substring(0,10),
+        },{'multi':false, 'upsert':false});
+      }else{
+        fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
+        db.products.save($scope.newProduct);
+      }
+    }
+    angular.element('#newProduct_value').focus();
   };
+
 });
 
 app.controller('configController', function($scope){

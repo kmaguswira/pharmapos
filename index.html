@@ -8,6 +8,7 @@
   <script src="./assets/js/jquery-1.8.3.min.js"></script>
   <script src="./assets/js/angular.min.js"></script>
   <script src="./assets/js/angular-route.min.js"></script>
+	<script src="./assets/js/Angucomplete.js"></script>
 </head>
 <body>
 	<link href="./assets/css/fontawesome.css" media="screen" rel="stylesheet">
@@ -27,19 +28,19 @@
 		<aside class="sidebar">
 			<ul class="sidebar-nav">
 				<li class="active">
-					<a data-toggle="tab" data-target='dashboard' href="#!"><i class="fa fa-dashboard"></i></a>
+					<a data-toggle="tab" data-toggle="tooltip" title="Dashboard" data-target='dashboard' href="#!"><i class="fa fa-dashboard"></i></a>
 				</li>
 				<li>
-					<a data-toggle="tab" data-target='pos' href="#!pos"><i class="fa fa-shopping-cart"></i></a>
+					<a data-toggle="tab" data-toggle="tooltip" title="Point of Sale" data-target='pos' href="#!pos"><i class="fa fa-shopping-cart"></i></a>
 				</li>
 				<li>
-					<a data-toggle="tab" data-target='inventory' href="#!inventory"><i class="fa fa-cube"></i></a>
+					<a data-toggle="tab" data-toggle="tooltip" title="Inventory" data-target='inventory' href="#!inventory"><i class="fa fa-cube"></i></a>
 				</li>
 				<li>
-					<a data-toggle="tab" data-target='config' href="#!config"><i class="fa fa-gears"></i></a>
+					<a data-toggle="tab" data-toggle="tooltip" title="Settings" data-target='config' href="#!config"><i class="fa fa-gears"></i></a>
 				</li>
 				<li>
-					<a data-toggle="tab" data-target='feedback' href="#!feedback"><i class="fa fa-envelope"></i></a>
+					<a data-toggle="tab" data-toggle="tooltip" title="Feedback" data-target='feedback' href="#!feedback"><i class="fa fa-envelope"></i></a>
 				</li>
 			</ul>
 		</aside>
@@ -50,6 +51,6 @@
 		</section>
 	</article>
   <script src="./assets/js/bootstrap.min.js"></script>
-  <script src="./assets/js/index.js"></script>
+	<script src="./assets/js/index.js"></script>
 </body>
 </html>

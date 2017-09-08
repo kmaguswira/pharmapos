@@ -4,7 +4,7 @@
       <div class="panel-heading">
         <div id="custom-search-input">
             <div class="input-group col-md-12">
-                <input type="text" class="form-control input" placeholder="Search for..." ng-model="inventory" />
+                <input type="text" class="form-control input" placeholder="Search for..." ng-model="product" />
                 <span class="input-group-btn">
                     <button class="btn btn-info btn-lg" type="button">
                       <i class="glyphicon glyphicon-search"></i>
@@ -15,7 +15,7 @@
       </div>
       <div class="panel-body inventory">
           <div class="list-group">
-            <a class="list-group-item" style="border-radius:0px;" ng-repeat="x in inventories | filter:inventory">
+            <a class="list-group-item" style="border-radius:0px;" ng-repeat="x in products | filter:product">
     					<div class="media">
     			      <span class="pull-right">
                   <span class="label label-warning" style="margin-right:7px;">{{ x.updatedAt }}</span>
@@ -23,14 +23,14 @@
                   <span class="glyphicon btn-glyphicon glyphicon-remove img-circle text-danger btn-group"></span>
                 </span>
     						<div class="pull-left">
-    							<img class="media-object" src="http://placehold.it/70x50" alt="Image">
+    							<img class="media-object" width="70" height="50" src="{{x.imagePath}}" alt="Image">
     						</div>
     						<div class="media-body">
-    							<h4 class="media-heading">{{ x.name }} ({{ x.id }})</h4>
-                  <span class="label label-default" style="margin-right:7px;">St : {{ x.stock }}</span>
-                  <span class="label label-primary" style="margin-right:7px;">BP : {{ x.base_price }}</span>
-                  <span class="label label-success" style="margin-right:7px;">SP : {{ x.sell_price }}</span>
-                  <span class="label label-info" style="margin-right:7px;">TS : {{ x.total }}</span>
+    							<h4 class="media-heading">{{ x.name }}</h4>
+                  <span class="label label-default" style="margin-right:7px;">St : {{ x.quantity }}</span>
+                  <span class="label label-primary" style="margin-right:7px;">BP : {{ x.base_price | currency : 'Rp. ' }}</span>
+                  <span class="label label-success" style="margin-right:7px;">SP : {{ x.sell_price | currency : 'Rp. ' }}</span>
+                  <!-- <span class="label label-info" style="margin-right:7px;">TS : {{ x.total }}</span> -->
     						</div>
     					</div>
     			    <div class="clearfix"></div>
@@ -39,5 +39,61 @@
       </div>
     </div>
   </div>
-  <button type="button" class="btn btn-success btn-circle btn-add"><i class="glyphicon glyphicon-plus"></i></button>
+  <button type="button" class="btn btn-success btn-circle btn-add" data-toggle="modal" data-target="#addProduct"><i class="glyphicon glyphicon-plus"></i></button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="addProduct" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Add Product</h4>
+        </div>
+        <div class="modal-body" style="height:200px">
+            <div class="form-group col-xs-6">
+              <label for="exampleInputEmail1">Product Name</label>
+              <angucomplete id="newProduct"
+                            placeholder="Product name"
+                            pause="100"
+                            selectedobject="newProduct"
+                            localdata="products"
+                            searchfields="name"
+                            titlefield="name"
+                            minlength="1"
+                            inputclass="form-control"/>
+            </div>
+            <div class="form-group col-xs-6">
+              <label for="image">Product Image</label>
+              <input class="form-control" type="file" name="image" id="image">
+            </div>
+            <div class="form-group col-xs-4">
+              <label for="quantity">Quantity</label>
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control" min="1" id="quantity" placeholder="Quantity" ng-model="qt" required>
+              </div>
+            </div>
+            <div class="form-group col-xs-4">
+              <label for="basePrice">Base Price</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-addon" id="sizing-addon1">@</span>
+                <input aria-describedby="sizing-addon1" type="number" class="form-control hideArrow" id="basePrice" placeholder="Base Price" ng-model="bp" required>
+              </div>
+            </div>
+            <div class="form-group col-xs-4">
+              <label for="sellPrice">Sell Price</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-addon" id="sizing-addon2">@</span>
+                <input aria-describedby="sizing-addon2" type="number" class="form-control hideArrow" id="sellPrice" placeholder="Sell Price" ng-model="sp" required>
+              </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" ng-click="addNewProduct()" class="btn btn-primary">Submit</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </section>

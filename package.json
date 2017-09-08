@@ -18,5 +18,8 @@
   "devDependencies": {
     "electron": "^1.7.5",
     "electron-reload": "^1.2.1"
+  },
+  "dependencies": {
+    "diskdb": "^0.1.17"
   }
 }
