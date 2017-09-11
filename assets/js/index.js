@@ -1,6 +1,11 @@
 const {remote} = require('electron');
 const app = angular.module('app', ['ngRoute', 'angucomplete']);
-const db = require('diskdb').connect(__dirname+'/store', ['products','sales','settings']);
+const Datastore = require('nedb')
+  , products = new Datastore({ filename: '../store/products.db', autoload:true });
+products.loadDatabase(function (err) {    // Callback is optional
+  // Now commands will be executed
+});
+
 const fs = require('fs');
 
 app.config(($routeProvider)=>{
@@ -82,13 +87,17 @@ app.controller('posController', function($scope){
 });
 
 app.controller('inventoryController', function($scope){
-  $scope.image="";
-  let productsTemp = db.products.find();
-  $scope.products = productsTemp;
+
+  loadProducts().then((products)=>{
+    document.getElementById('spinner').style.display = 'none';
+    $scope.products=products;
+    $scope.$apply();
+  }).catch((err)=>{
+    if(err) console.log(err);
+  })
+
   document.getElementById("image").addEventListener('change', function(){
     if(this.files[0]){
-      // var img = document.getElementById('image-prev');
-      // img.src = URL.createObjectURL(this.files[0]);
       $scope.image=this.files[0];
     };
   })
@@ -100,29 +109,28 @@ app.controller('inventoryController', function($scope){
       $scope.newProduct.name = angular.element('#newProduct_value').val();
       $scope.newProduct.quantity = angular.element('#quantity').val();
       $scope.newProduct.sell_price = angular.element('#sellPrice').val();
+      $scope.newProduct.status = true;
       $scope.newProduct.createdAt = new Date().toISOString().substring(0,10);
       $scope.newProduct.updatedAt = $scope.newProduct.createdAt;
       let obj = $scope.products.find(o => o.name === $scope.newProduct.name);
       if(obj){
-        $scope.products.push({
+        products.update({'_id':obj._id},{
           'name':$scope.newProduct.name,
-          'quantity':$scope.newProduct.quantity+obj.quantity,
+          'quantity':Number($scope.newProduct.quantity)+Number(obj.quantity),
           'base_price':$scope.newProduct.base_price,
           'sell_price':$scope.newProduct.sell_price,
           'status':true,
           'updatedAt':new Date().toISOString().substring(0,10),
+        },{}, (err, updatedProduct) =>{
+          if(err) console.log(err);
+          $scope.$apply();
         });
-        let status = db.products.update({'_id':obj._id},{
-          'name':$scope.newProduct.name,
-          'quantity':$scope.newProduct.quantity+obj.quantity,
-          'base_price':$scope.newProduct.base_price,
-          'sell_price':$scope.newProduct.sell_price,
-          'status':true,
-          'updatedAt':new Date().toISOString().substring(0,10),
-        },{'multi':false, 'upsert':false});
       }else{
         fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
-        db.products.save($scope.newProduct)
+        products.insert($scope.newProduct, (err, newProduct) => {
+          if(err) console.log(err);
+          $scope.products.push(newProduct);
+        });
       }
       angular.element("#cancel-btn").click();
     }
@@ -141,3 +149,13 @@ app.controller('feedbackController', function($scope){
     alert("feedback");
   };
 });
+
+
+let loadProducts = () =>{
+  return new Promise((resolve, reject)=>{
+    products.find({}, (err, products) => {
+      if(err) reject(err);
+      resolve(products);
+    });
+  })
+}
