@@ -129,12 +129,16 @@ app.controller('inventoryController', function($scope){
       if(obj){
         //update product
         let newObj = {
-          'name':$scope.newProduct.name,
+          'name':obj.name,
           'quantity':Number($scope.newProduct.quantity)+Number(obj.quantity),
           'base_price':$scope.newProduct.base_price,
           'sell_price':$scope.newProduct.sell_price,
+          'imagePath':obj.imagePath,
+          'status':obj.status,
+          'createdAt':obj.createdAt,
           'updatedAt':new Date().toISOString().substring(0,10),
         };
+
         if($scope.image){
           fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
           newObj.imagePath = $scope.newProduct.imagePath;
@@ -163,6 +167,20 @@ app.controller('inventoryController', function($scope){
     }
     angular.element('#newProduct_value').focus();
   };
+
+  $scope.activeOrDeactive = (id) => {
+    $scope.products.forEach((x)=>{
+      if(x._id === id){
+        if(x.status)
+          x.status = false;
+        else
+          x.status = true;
+        products.update({'_id':id}, x, {}, (err)=>{
+          if(err) console.log(err);
+        });
+      }
+    });
+  }
 });
 
 app.controller('configController', function($scope){
