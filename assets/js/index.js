@@ -2,8 +2,7 @@ const {remote} = require('electron');
 const app = angular.module('app', ['ngRoute', 'angucomplete']);
 const Datastore = require('nedb')
   , products = new Datastore({ filename: '../store/products.db', autoload:true });
-products.loadDatabase(function (err) {    // Callback is optional
-  // Now commands will be executed
+products.loadDatabase(function (err) {
 });
 
 const fs = require('fs');
@@ -94,17 +93,31 @@ app.controller('inventoryController', function($scope){
     $scope.$apply();
   }).catch((err)=>{
     if(err) console.log(err);
-  })
+  });
 
   document.getElementById("image").addEventListener('change', function(){
     if(this.files[0]){
       $scope.image=this.files[0];
-    };
-  })
+    }
+  });
+
   $scope.addNewProduct = () => {
-    if(angular.element('#newProduct_value').val()!==""){
+    let obj = $scope.products.find(o => o.name === angular.element('#newProduct_value').val());
+    let doUpdate = obj ? true : false;
+
+    if(angular.element('#newProduct_value').val()!==""&&
+    angular.element('#quantity').val()!==""&&
+    angular.element('#base_price').val()!==""&&
+    angular.element('#sell_price').val()!==""){
       $scope.newProduct = {};
-      $scope.newProduct.imagePath = __dirname+'/assets/images/'+Date.parse(new Date)+$scope.image.name;
+
+      if(doUpdate&&!$scope.image)
+        $scope.newProduct.imagePath = obj.imagePath;
+      else if(!doUpdate&&!$scope.image)
+        $scope.newProduct.imagePath = __dirname+'/assets/images/70x50.png';
+      else
+        $scope.newProduct.imagePath = __dirname+'/assets/images/'+Date.parse(new Date)+$scope.image.name;
+
       $scope.newProduct.base_price = angular.element('#basePrice').val();
       $scope.newProduct.name = angular.element('#newProduct_value').val();
       $scope.newProduct.quantity = angular.element('#quantity').val();
@@ -112,21 +125,35 @@ app.controller('inventoryController', function($scope){
       $scope.newProduct.status = true;
       $scope.newProduct.createdAt = new Date().toISOString().substring(0,10);
       $scope.newProduct.updatedAt = $scope.newProduct.createdAt;
-      let obj = $scope.products.find(o => o.name === $scope.newProduct.name);
+
       if(obj){
-        products.update({'_id':obj._id},{
+        //update product
+        let newObj = {
           'name':$scope.newProduct.name,
           'quantity':Number($scope.newProduct.quantity)+Number(obj.quantity),
           'base_price':$scope.newProduct.base_price,
           'sell_price':$scope.newProduct.sell_price,
-          'status':true,
           'updatedAt':new Date().toISOString().substring(0,10),
-        },{}, (err, updatedProduct) =>{
-          if(err) console.log(err);
-          $scope.$apply();
+        };
+        if($scope.image){
+          fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
+          newObj.imagePath = $scope.newProduct.imagePath;
+        }
+        updateProduct(obj._id, newObj).then((result)=>{
+          $scope.products.forEach((x)=>{
+            if(x._id === obj._id){
+              x.quantity=newObj.quantity;
+              x.base_price=newObj.base_price,
+              x.sell_price=newObj.sell_price,
+              x.updatedAt=newObj.updatedAt
+            }
+          });
         });
       }else{
-        fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
+        // add new product
+        if($scope.image)
+          fs.writeFileSync($scope.newProduct.imagePath, fs.readFileSync($scope.image.path));
+
         products.insert($scope.newProduct, (err, newProduct) => {
           if(err) console.log(err);
           $scope.products.push(newProduct);
@@ -157,5 +184,14 @@ let loadProducts = () =>{
       if(err) reject(err);
       resolve(products);
     });
-  })
+  });
+}
+
+let updateProduct  = (id, newObj) => {
+  return new Promise((resolve, reject) => {
+    products.update({'_id':id}, newObj, {}, (err, updatedProduct)=>{
+      if(err) reject(err);
+      resolve(updatedProduct);
+    });
+  });
 }
