@@ -122,6 +122,12 @@ nav.subbar > ul.nav.nav-tabs > li.active > a {
   margin-bottom: 14px;
 }
 
+#spinner{
+  position: fixed;
+  top:50%;
+  left: 50%;
+}
+
 /*Inventory*/
 #custom-search-input{
     padding: 3px;
