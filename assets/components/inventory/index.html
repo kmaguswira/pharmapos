@@ -14,13 +14,16 @@
         </div>
       </div>
       <div class="panel-body inventory">
+          <div id='spinner'>
+            <img src="./assets/images/spinner.gif">
+          </div>
           <div class="list-group">
             <a class="list-group-item" style="border-radius:0px;" ng-repeat="x in products | filter:product">
     					<div class="media">
     			      <span class="pull-right">
                   <span class="label label-warning" style="margin-right:7px;">{{ x.updatedAt }}</span>
                   <span class="glyphicon btn-glyphicon glyphicon-pencil img-circle text-info btn-group" ></span>
-                  <span class="glyphicon btn-glyphicon glyphicon-remove img-circle text-danger btn-group"></span>
+                  <span ng-click="activeOrDeactive(x._id)" class="glyphicon btn-glyphicon {{x.status?'glyphicon-ok-circle':'glyphicon-ban-circle'}} img-circle text-danger btn-group"></span>
                 </span>
     						<div class="pull-left">
     							<img class="media-object" width="70" height="50" src="{{x.imagePath}}" alt="Image">
@@ -46,6 +49,7 @@
     <div class="modal-dialog">
       <!-- Modal content-->
       <div class="modal-content">
+        <form onsubmit="this.reset()">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">&times;</button>
           <h4 class="modal-title">Add Product</h4>
@@ -89,10 +93,11 @@
             </div>
         </div>
         <div class="modal-footer">
-          <button type="button" ng-click="addNewProduct()" class="btn btn-primary">Submit</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" ng-click="addNewProduct()" class="btn btn-primary">Submit</button>
+          <button type="button" id='cancel-btn' class="btn btn-default" data-dismiss="modal">Cancel</button>
         </div>
-      </div>
+      </form>
+    </div>
 
     </div>
   </div>

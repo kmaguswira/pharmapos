@@ -20,6 +20,6 @@
     "electron-reload": "^1.2.1"
   },
   "dependencies": {
-    "diskdb": "^0.1.17"
+    "nedb": "^1.8.0"
   }
 }

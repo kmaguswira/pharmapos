@@ -9,11 +9,14 @@
         </div>
       </div>
       <div class="panel-body pos">
+        <div id='spinner'>
+          <img src="./assets/images/spinner.gif">
+        </div>
         <div class="list-group">
           <a class="list-group-item" style="border-radius:0px; cursor:pointer;" ng-click='addToCart(inventories.indexOf(x))' ng-repeat="x in inventories | filter:inventory" ng-if="!cart[inventories.indexOf(x)].active">
             <div class="media">
               <span class="pull-right">
-                <span class="label label-warning" style="margin-right:7px; font-size:10px;">{{ x.stock }}</span>
+                <span class="label label-warning" style="margin-right:7px; font-size:10px;">{{ x.quantity }}</span>
               </span>
               <div class="pull-left">
                 <img class="media-object" width="55" height="40" src="./assets/images/55x40.png" alt="Image">
@@ -30,12 +33,12 @@
     </div>
     <div class="panel panel-default">
       <div class="panel-heading">
-        Tools
+        History
       </div>
       <div class="panel-body" style="height:90px">
-        <button type="button" class="btn btn-default btn-circle btn-lg" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-list"></i></button>
-        <button type="button" class="btn btn-primary btn-circle btn-lg" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-barcode"></i></button>
-        <button type="button" class="btn btn-info btn-circle btn-lg" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-shopping-cart"></i></button>
+        <button type="button" class="btn btn-default btn-circle btn-lg" data-toggle="modal" data-target="#actionsHistory" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-list"></i></button>
+        <button type="button" class="btn btn-primary btn-circle btn-lg" ng-click='loadOrders()' data-toggle="modal" data-target="#ordersHistory" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-barcode"></i></button>
+        <button type="button" class="btn btn-info btn-circle btn-lg" ng-click='loadSales()' data-toggle="modal" data-target="#salesHistory" style="margin-left:38px; margin-top:13px;"><i class="glyphicon glyphicon-shopping-cart"></i></button>
       </div>
     </div>
   </div>
@@ -67,10 +70,128 @@
                 <td>{{ totalPrice | currency : "Rp. "}}</td>
               </tr>
               <tr>
-                <td colspan="4"><center><button class="btn btn-primary">Checkout</button></center></td>
+                <td colspan="4"><center><button ng-click='checkOut()' class="btn btn-primary">Checkout</button></center></td>
               </tr>
           </tfoot>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="salesHistory" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Sales History</h4>
+        </div>
+        <div class="modal-body" style="height:357px; padding:0px">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <div id="custom-search-input">
+                  <div class="input-group col-md-12">
+                      <input type="text" class="form-control input-sm" placeholder="Enter invoice number..." ng-model="invoice" style="height:20px;"/>
+                  </div>
+              </div>
+            </div>
+            <div class="panel-body pos" style="height:307px">
+              <div id='spinner-salesHistory'>
+                <img src="./assets/images/spinner.gif">
+              </div>
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <td><strong>#</strong></td>
+                    <td><strong>Items</strong></td>
+                    <td><strong>Total</strong></td>
+                    <td><strong>Date</strong></td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat-start="x in sales | filter:invoice" style="cursor:pointer" ng-click="showDetailSale(x._id)">
+                    <td>{{x._id}}</td>
+                    <td>{{x.orders.length}}</td>
+                    <td>{{x.totalPrice | currency : "Rp. "}}</td>
+                    <td>{{x.createdAt}}</td>
+                  </tr>
+                  <tr ng-repeat-end id="{{x._id}}" style="display:none">
+                    <td class="success" colspan="3" style="padding:0px">
+                      <ul class="list-group" style="margin-bottom:0px; border-radius:0px">
+                        <li class="list-group-item list-group-item-success" ng-repeat="y in x.orders" style="height:50px;border-top-left-radius: 0px;border-top-right-radius: 0px;"><strong>{{y.name}}</strong> - {{y.qt}}@{{y.sell_price | currency : "Rp. "}} <span class="badge badge-success">{{y.price | currency : "Rp. "}}</span></li>
+                      </ul>
+                    </td>
+                    <td class="success" style="vertical-align:middle">
+                      <button ng-click='printInvoice(x._id)' class="btn btn-primary" style="margin:auto; display:block">Print</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id='cancel-btn' class="btn btn-default" data-dismiss="modal">Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="ordersHistory" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Orders History</h4>
+        </div>
+        <div class="modal-body" style="height:357px; padding:0px">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <div id="custom-search-input">
+                  <div class="input-group col-md-12">
+                      <input type="text" class="form-control input-sm" placeholder="Enter Order Date (yyyy-mm-dd)" ng-model="orderDate" style="height:20px; width:200px !important;"/>
+                  </div>
+              </div>
+            </div>
+            <div class="panel-body pos" style="height:307px">
+              <div id='spinner-ordersHistory'>
+                <img src="./assets/images/spinner.gif">
+              </div>
+              <table class="table table-hover table-striped">
+                <tbody>
+                  <tr ng-repeat-start="x in orders | filter:orderDate" style="cursor:pointer" ng-click="showDetailOrder(x._id)">
+                    <td><center>{{x.date}}</center</td>
+                  </tr>
+                  <tr ng-repeat-end id="{{x._id}}" style="display:none">
+                    <td style="padding:0px">
+                      <ul class="list-group" style="margin-bottom:0px; border-radius:0px">
+                        <li class="list-group-item list-group-item-success" ng-repeat="y in x.items" style="height:50px;border-top-left-radius: 0px;border-top-right-radius: 0px;"><strong>{{y.name}}</strong> - {{y.quantity}}@{{y.base_price | currency : "Rp. "}} <span class="badge badge-success">{{y.totalPrice | currency : "Rp. "}}</span></li>
+                      </ul>
+                    </td
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id='cancel-btn' class="btn btn-default" data-dismiss="modal">Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="actionsHistory" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Actions History</h4>
+        </div>
+        <div class="modal-body" style="height:357px">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" id='cancel-btn' class="btn btn-default" data-dismiss="modal">Back</button>
+        </div>
       </div>
     </div>
   </div>

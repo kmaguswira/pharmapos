@@ -1,7 +1,9 @@
 const {remote} = require('electron');
 const app = angular.module('app', ['ngRoute', 'angucomplete']);
 const Datastore = require('nedb')
-  , products = new Datastore({ filename: '../store/products.db', autoload:true });
+  , products = new Datastore({ filename:'../store/products.db', autoload:true })
+  , sales = new Datastore({ filename:'../store/sales.db', autoload:true})
+  , orders = new Datastore({ filename:'../store/orders.db', autoload:true});
 products.loadDatabase(function (err) {
 });
 
@@ -45,21 +47,49 @@ app.controller('dashboardController', function($scope){
 });
 
 app.controller('posController', function($scope){
-  $scope.inventories = [
-    {id:"123", name:"name1", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-    {id:"123", name:"name2", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-    {id:"123", name:"name3", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-    {id:"123", name:"name4", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-    {id:"123", name:"name5", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-    {id:"123", name:"name6", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-    {id:"123", name:"name7", stock:"30", base_price:"20000", sell_price:30000, updatedAt:"10000"},
-  ];
-  $scope.cart = [];
-  $scope.totalPrice = 0;
-  $scope.inventories.forEach((x,i)=>{$scope.cart[i]={active:false, qt:0, price:0};});
-  $scope.testing = () => {
-    alert("pos");
+  loadProducts({}).then((products)=>{
+    document.getElementById('spinner').style.display = 'none';
+    $scope.inventories=products.filter(x=>x.status==true);
+    $scope.cart = [];
+    $scope.sales = [];
+    $scope.orders = [];
+    $scope.totalPrice = 0;
+    $scope.inventories.forEach((x,i)=>{$scope.cart[i]={id:x._id, name:x.name, sell_price:x.sell_price, active:false, qt:0, price:0};});
+    $scope.$apply();
+  }).catch((err)=>{
+    if(err) console.log(err);
+  });
+  $scope.loadSales = () => {
+    new Promise((resolve, reject)=>{
+      sales.find({}).sort({date:-1}).exec((err, lists)=>{
+        if(err) reject(err);
+        resolve(lists);
+      });
+    }).then((data)=>{
+      document.getElementById('spinner-salesHistory').style.display = 'none';
+      $scope.$apply(()=>{
+        $scope.sales = data;
+      });
+    }).catch((err)=>{
+      console.log(err)
+    });
   };
+  $scope.loadOrders = () => {
+    new Promise((resolve, reject)=>{
+      orders.find({}).sort({createdAt:-1}).exec((err, lists)=>{
+        if(err) reject(err);
+        resolve(lists);
+      });
+    }).then((data)=>{
+      document.getElementById('spinner-ordersHistory').style.display = 'none';
+      $scope.$apply(()=>{
+        $scope.orders = data;
+        console.log($scope.orders)
+      });
+    }).catch((err)=>{
+      console.log(err);
+    });
+  }
   $scope.addToCart = (i) => {
     $scope.cart[i].active=true;
     $scope.cart[i].price=$scope.inventories[i].sell_price;
@@ -74,20 +104,68 @@ app.controller('posController', function($scope){
   };
   $scope.updatePrice = (i,name) =>{
     $scope.cart[i].qt=angular.element('#'+name).val();
-    $scope.cart[i].price=$scope.cart[i].qt*$scope.inventories[i].sell_price;
+    $scope.cart[i].price=Number($scope.cart[i].qt)*Number($scope.inventories[i].sell_price);
     $scope.updateTotal();
   };
   $scope.getValForm = (i) => {
     return angular.element('#'+i).val();
   };
   $scope.updateTotal = () => {
-    $scope.totalPrice = $scope.cart.reduce((total, x)=>{return total+x.price;},0);
+    $scope.totalPrice = $scope.cart.reduce((total, x)=>{return Number(total)+Number(x.price);},0);
   };
+  $scope.checkOut  = () => {
+    $scope.cart.forEach((x,i)=>{
+      if(x.active){
+        $scope.inventories[i].quantity = Number($scope.inventories[i].quantity)-Number(x.qt);
+        products.update({'_id':x.id}, {
+          'name':$scope.inventories[i].name,
+          'quantity':$scope.inventories[i].quantity,
+          'base_price':$scope.inventories[i].base_price,
+          'sell_price':$scope.inventories[i].sell_price,
+          'imagePath':$scope.inventories[i].imagePath,
+          'status':$scope.inventories[i].status,
+          'createdAt':$scope.inventories[i].createdAt,
+          'updatedAt':$scope.inventories[i].updatedAt
+        }, {}, (err,x)=>{
+          if(err) console.log(err);
+          console.log('updated', x);
+        });
+      }
+    });
+    sales.insert({
+                  'createdAt':new Date().toISOString().substring(0,10),
+                  'totalPrice':$scope.totalPrice,
+                  'orders':$scope.cart.filter(x=>x.active===true)
+                },
+    (err, newSale) => {
+      if(err) console.log(err);
+    });
+
+    console.log($scope.cart);
+    $scope.cart = [];
+    $scope.totalPrice = 0;
+  };
+  $scope.showDetailSale = (i) =>{
+    if(document.getElementById(i).style.display === 'none'){
+      document.getElementById(i).style.display='table-row';
+    }else{
+      document.getElementById(i).style.display='none';
+    }
+  }
+  $scope.showDetailOrder = (i) =>{
+    console.log(1)
+    if(document.getElementById(i).style.display === 'none'){
+      console.log(2)
+      document.getElementById(i).style.display='table-row';
+    }else{
+      document.getElementById(i).style.display='none';
+    }
+  }
 });
 
 app.controller('inventoryController', function($scope){
 
-  loadProducts().then((products)=>{
+  loadProducts({}).then((products)=>{
     document.getElementById('spinner').style.display = 'none';
     $scope.products=products;
     $scope.$apply();
@@ -144,6 +222,19 @@ app.controller('inventoryController', function($scope){
           newObj.imagePath = $scope.newProduct.imagePath;
         }
         updateProduct(obj._id, newObj).then((result)=>{
+          orders.update({'date':new Date().toISOString().substring(0,10)},{
+            $push:{'items':{
+              'id':obj._id,
+              'name':obj.name,
+              'base_price':$scope.newProduct.base_price,
+              'quantity':$scope.newProduct.quantity,
+              'totalPrice':Number($scope.newProduct.base_price)*Number($scope.newProduct.quantity),
+              'is_new':false
+            }}
+          }, {'upsert':true}, (err)=>{
+            if(err) console.log(err);
+            console.log('order created');
+          });
           $scope.products.forEach((x)=>{
             if(x._id === obj._id){
               x.quantity=newObj.quantity;
@@ -160,6 +251,19 @@ app.controller('inventoryController', function($scope){
 
         products.insert($scope.newProduct, (err, newProduct) => {
           if(err) console.log(err);
+          orders.update({'date':new Date().toISOString().substring(0,10)},{
+            $push:{'items':{
+              'id':newProduct._id,
+              'name':newProduct.name,
+              'base_price':$scope.newProduct.base_price,
+              'quantity':$scope.newProduct.quantity,
+              'totalPrice':Number($scope.newProduct.base_price)*Number($scope.newProduct.quantity),
+              'is_new':true
+            }}
+          }, {'upsert':true}, (err)=>{
+            if(err) console.log(err);
+            console.log('order created');
+          });
           $scope.products.push(newProduct);
         });
       }
@@ -175,7 +279,16 @@ app.controller('inventoryController', function($scope){
           x.status = false;
         else
           x.status = true;
-        products.update({'_id':id}, x, {}, (err)=>{
+        products.update({'_id':id}, {
+          'name':x.name,
+          'quantity':x.quantity,
+          'base_price':x.base_price,
+          'sell_price':x.sell_price,
+          'imagePath':x.imagePath,
+          'status':x.status,
+          'createdAt':x.createdAt,
+          'updatedAt':new Date().toISOString().substring(0,10)
+        }, {}, (err)=>{
           if(err) console.log(err);
         });
       }
@@ -196,9 +309,9 @@ app.controller('feedbackController', function($scope){
 });
 
 
-let loadProducts = () =>{
+let loadProducts = (query) =>{
   return new Promise((resolve, reject)=>{
-    products.find({}, (err, products) => {
+    products.find(query, (err, products) => {
       if(err) reject(err);
       resolve(products);
     });
