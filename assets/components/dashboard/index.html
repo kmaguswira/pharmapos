@@ -43,19 +43,12 @@
     <div class="col-xs-12 col-sm-9">
       <div class="panel panel-default">
         <div class="panel-heading">
-          Test
+          Notifications
         </div>
-        <div class="panel-body">
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
-          <br>
+        <div class="panel-body" style="height:262px; padding:0px; overflow-y:scroll">
+          <div class="alert" ng-class="{'alert-warning':x.nofStat=='Warning!', 'alert-danger':x.nofStat=='Danger!'}" style="margin-bottom:0px; border-radius:0px !important; padding:12px" ng-repeat="x in notifications">
+            <strong>{{x.nofStat}}</strong> {{x.name}} - {{x.nofMsg}}
+          </div>
         </div>
       </div>
     </div>

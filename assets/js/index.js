@@ -41,9 +41,32 @@ app.controller('navController', function($scope){
 });
 
 app.controller('dashboardController', function($scope){
+  $scope.notifications=[];
+
   $scope.testing = () => {
     alert("dashboard");
   };
+  $scope.loadNotif = () => {
+    let getNotif = loadProducts({"quantity":{$lte:10}})
+    getNotif.then((data)=>{
+      data.forEach(x=>{
+        if(x.quantity==0){
+          x.nofStat = 'Danger!';
+          x.nofMsg = 'Out of stock, please restock'
+        }else{
+          x.nofStat = 'Warning!';
+          x.nofMsg = 'Almost out of stock'
+        }
+      });
+      $scope.$apply(()=>{
+        $scope.notifications = data;
+        console.log($scope.notifications)
+      })
+    }).catch((err)=>{
+      console.log(err);
+    })
+  }
+  $scope.loadNotif();
 });
 
 app.controller('posController', function($scope){
@@ -81,10 +104,12 @@ app.controller('posController', function($scope){
         resolve(lists);
       });
     }).then((data)=>{
+      data.forEach((x)=>{
+        x.total = x.items.reduce((total, x)=> {return Number(total) + Number(x.totalPrice)}, 0);
+      });
       document.getElementById('spinner-ordersHistory').style.display = 'none';
       $scope.$apply(()=>{
         $scope.orders = data;
-        console.log($scope.orders)
       });
     }).catch((err)=>{
       console.log(err);
@@ -161,6 +186,10 @@ app.controller('posController', function($scope){
       document.getElementById(i).style.display='none';
     }
   }
+  $scope.resetSpinner = () => {
+    // document.getElementById('spinner-salesHistory').style.display = 'block';
+    // document.getElementById('spinner-ordersHistory').style.display = 'block';
+  }
 });
 
 app.controller('inventoryController', function($scope){
@@ -196,10 +225,10 @@ app.controller('inventoryController', function($scope){
       else
         $scope.newProduct.imagePath = __dirname+'/assets/images/'+Date.parse(new Date)+$scope.image.name;
 
-      $scope.newProduct.base_price = angular.element('#basePrice').val();
+      $scope.newProduct.base_price = Number(angular.element('#basePrice').val());
       $scope.newProduct.name = angular.element('#newProduct_value').val();
-      $scope.newProduct.quantity = angular.element('#quantity').val();
-      $scope.newProduct.sell_price = angular.element('#sellPrice').val();
+      $scope.newProduct.quantity = Number(angular.element('#quantity').val());
+      $scope.newProduct.sell_price = Number(angular.element('#sellPrice').val());
       $scope.newProduct.status = true;
       $scope.newProduct.createdAt = new Date().toISOString().substring(0,10);
       $scope.newProduct.updatedAt = $scope.newProduct.createdAt;
@@ -256,7 +285,7 @@ app.controller('inventoryController', function($scope){
               'id':newProduct._id,
               'name':newProduct.name,
               'base_price':$scope.newProduct.base_price,
-              'quantity':$scope.newProduct.quantity,
+              'quantity':Number($scope.newProduct.quantity),
               'totalPrice':Number($scope.newProduct.base_price)*Number($scope.newProduct.quantity),
               'is_new':true
             }}

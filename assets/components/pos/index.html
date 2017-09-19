@@ -131,7 +131,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" id='cancel-btn' class="btn btn-default" data-dismiss="modal">Back</button>
+          <button type="button" id='cancel-btn' ng-click="resetSpinner()" class="btn btn-default" data-dismiss="modal">Back</button>
         </div>
       </div>
     </div>
@@ -159,7 +159,7 @@
               <table class="table table-hover table-striped">
                 <tbody>
                   <tr ng-repeat-start="x in orders | filter:orderDate" style="cursor:pointer" ng-click="showDetailOrder(x._id)">
-                    <td><center>{{x.date}}</center</td>
+                    <td><center>{{x.date}} - {{x.total | currency : 'Rp. '}}</center</td>
                   </tr>
                   <tr ng-repeat-end id="{{x._id}}" style="display:none">
                     <td style="padding:0px">
@@ -174,7 +174,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" id='cancel-btn' class="btn btn-default" data-dismiss="modal">Back</button>
+          <button type="button" id='cancel-btn' ng-click="resetSpinner()" class="btn btn-default" data-dismiss="modal">Back</button>
         </div>
       </div>
     </div>
