@@ -3,7 +3,8 @@ const app = angular.module('app', ['ngRoute', 'angucomplete']);
 const Datastore = require('nedb')
   , products = new Datastore({ filename:'../store/products.db', autoload:true })
   , sales = new Datastore({ filename:'../store/sales.db', autoload:true})
-  , orders = new Datastore({ filename:'../store/orders.db', autoload:true});
+  , orders = new Datastore({ filename:'../store/orders.db', autoload:true})
+  , statistics = new Datastore({ filename:'../store/statistics.db', autoload:true});
 products.loadDatabase(function (err) {
 });
 
@@ -42,6 +43,8 @@ app.controller('navController', function($scope){
 
 app.controller('dashboardController', function($scope){
   $scope.notifications=[];
+  $scope.top5Sales=[];
+  $scope.top5Revenue=[];
 
   $scope.testing = () => {
     alert("dashboard");
@@ -60,13 +63,89 @@ app.controller('dashboardController', function($scope){
       });
       $scope.$apply(()=>{
         $scope.notifications = data;
-        console.log($scope.notifications)
+        // console.log($scope.notifications)
       })
     }).catch((err)=>{
       console.log(err);
     })
   }
+  $scope.loadStatistic = () => {
+    new Promise((resolve, reject)=>{
+      statistics.find({}, (err, stats) => {
+        if(err) reject(err);
+        resolve(stats);
+      });
+    }).then((data)=>{
+      let stats = [];
+      data.forEach((x, i)=>{
+        let totalSales = x.sales.reduce((total, x)=>{return total+x.qt},0);
+        let totalrevenue = x.sales.reduce((total, x)=>{return total+x.revenue},0);
+        stats.push({
+          'name' : x.name,
+          'sales' : totalSales,
+          'revenue' : totalrevenue
+        });
+      });
+      $scope.$apply(()=>{
+        if(stats.length<5){
+          $scope.top5Sales = stats.sort((a,b)=>{ return b.qt-a.qt }).slice(0, stats.length);
+          $scope.top5Revenue = stats.sort((a,b)=>{ return b.revenue-a.revenue }).slice(0, stats.length);
+        }else{
+          $scope.top5Sales = stats.sort((a,b)=>{ return b.qt-a.qt }).slice(0, 5);
+          $scope.top5Revenue = stats.sort((a,b)=>{ return b.revenue-a.revenue }).slice(0, 5);
+        }
+      });
+    }).catch((err)=>{
+      console.log(err);
+    });
+  }
+  $scope.createChart = () => {
+    let totalSales = {};
+    let totalRevenue = {};
+
+    new Promise((resolve, reject)=>{
+      let thisMonth = new RegExp(new Date().toISOString().substring(0,7).replace("-", "\\-"),"i");
+      console.log(thisMonth)
+      sales.find({'createdAt':{$regex:thisMonth}}, (err, lists)=>{
+        console.log(lists)
+        lists.forEach(x=>totalSales[x.createdAt]=(totalSales[x.createdAt]||0)+x.totalPrice)
+        lists.forEach(x=>totalRevenue[x.createdAt]=(totalRevenue[x.createdAt]||0)+x.totalRevenue)
+        console.log(totalRevenue)
+        //createChart
+        new Chart(document.getElementById("chart"), {
+          type: 'line',
+          data: {
+            labels: Object.keys(totalSales),
+            datasets: [{
+                data: Object.values(totalSales),
+                label: "Sales",
+                borderColor: "#3e95cd",
+                fill: false
+              },
+              {
+                  data: Object.values(totalRevenue),
+                  label: "Revenue",
+                  borderColor: "#8e5ea2",
+                  fill: false
+                }]
+          },
+          options: {
+            title: {
+              display: true,
+              text: 'Total sales in a month'
+            }
+          }
+        });
+      })
+    }).then((data)=>{
+      console.log('test', data);
+    }).catch((err)=>{
+      console.log(err);
+    });
+  }
   $scope.loadNotif();
+  $scope.loadStatistic();
+  $scope.createChart();
 });
 
 app.controller('posController', function($scope){
@@ -77,14 +156,14 @@ app.controller('posController', function($scope){
     $scope.sales = [];
     $scope.orders = [];
     $scope.totalPrice = 0;
-    $scope.inventories.forEach((x,i)=>{$scope.cart[i]={id:x._id, name:x.name, sell_price:x.sell_price, active:false, qt:0, price:0};});
+    $scope.inventories.forEach((x,i)=>{$scope.cart[i]={id:x._id, name:x.name, sell_price:x.sell_price, base_price:x.base_price, active:false, qt:0, price:0};});
     $scope.$apply();
   }).catch((err)=>{
     if(err) console.log(err);
   });
   $scope.loadSales = () => {
     new Promise((resolve, reject)=>{
-      sales.find({}).sort({date:-1}).exec((err, lists)=>{
+      sales.find({}).sort({createdAt:-1}).exec((err, lists)=>{
         if(err) reject(err);
         resolve(lists);
       });
@@ -99,7 +178,7 @@ app.controller('posController', function($scope){
   };
   $scope.loadOrders = () => {
     new Promise((resolve, reject)=>{
-      orders.find({}).sort({createdAt:-1}).exec((err, lists)=>{
+      orders.find({}).sort({date:-1}).exec((err, lists)=>{
         if(err) reject(err);
         resolve(lists);
       });
@@ -139,9 +218,12 @@ app.controller('posController', function($scope){
     $scope.totalPrice = $scope.cart.reduce((total, x)=>{return Number(total)+Number(x.price);},0);
   };
   $scope.checkOut  = () => {
+    let totalRevenue = 0;
     $scope.cart.forEach((x,i)=>{
       if(x.active){
+        //update front
         $scope.inventories[i].quantity = Number($scope.inventories[i].quantity)-Number(x.qt);
+        //update db
         products.update({'_id':x.id}, {
           'name':$scope.inventories[i].name,
           'quantity':$scope.inventories[i].quantity,
@@ -155,12 +237,30 @@ app.controller('posController', function($scope){
           if(err) console.log(err);
           console.log('updated', x);
         });
+        //update insert statistics
+        totalRevenue += (Number($scope.inventories[i].sell_price)-Number($scope.inventories[i].base_price))*Number(x.qt);
+        statistics.update({'product_id':x.id},{
+          $set:{
+            'name':$scope.inventories[i].name,
+          },
+          $push:{'sales':{
+            'qt':Number(x.qt),
+            'revenue':(Number($scope.inventories[i].sell_price)-Number($scope.inventories[i].base_price))*Number(x.qt),
+            'date':new Date().toISOString().substring(0,10)
+          }}
+        }, {'upsert':true}, (err)=>{
+          if(err) console.log(err);
+          console.log('statistic created');
+        });
       }
     });
+    //insert to sales
+    console.log(totalRevenue)
     sales.insert({
                   'createdAt':new Date().toISOString().substring(0,10),
                   'totalPrice':$scope.totalPrice,
-                  'orders':$scope.cart.filter(x=>x.active===true)
+                  'orders':$scope.cart.filter(x=>x.active===true),
+                  'totalRevenue':totalRevenue
                 },
     (err, newSale) => {
       if(err) console.log(err);
@@ -225,6 +325,7 @@ app.controller('inventoryController', function($scope){
       else
         $scope.newProduct.imagePath = __dirname+'/assets/images/'+Date.parse(new Date)+$scope.image.name;
 
+      //new object
       $scope.newProduct.base_price = Number(angular.element('#basePrice').val());
       $scope.newProduct.name = angular.element('#newProduct_value').val();
       $scope.newProduct.quantity = Number(angular.element('#quantity').val());
