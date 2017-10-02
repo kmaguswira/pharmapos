@@ -1,10 +1,10 @@
 const {remote} = require('electron');
 const app = angular.module('app', ['ngRoute', 'angucomplete']);
 const Datastore = require('nedb')
-  , products = new Datastore({ filename:'../store/products.db', autoload:true })
-  , sales = new Datastore({ filename:'../store/sales.db', autoload:true})
-  , orders = new Datastore({ filename:'../store/orders.db', autoload:true})
-  , statistics = new Datastore({ filename:'../store/statistics.db', autoload:true});
+  , products = new Datastore({ filename:'./store/products.db', autoload:true })
+  , sales = new Datastore({ filename:'./store/sales.db', autoload:true})
+  , orders = new Datastore({ filename:'./store/orders.db', autoload:true})
+  , statistics = new Datastore({ filename:'./store/statistics.db', autoload:true});
 products.loadDatabase(function (err) {
 });
 
@@ -88,10 +88,10 @@ app.controller('dashboardController', function($scope){
       });
       $scope.$apply(()=>{
         if(stats.length<5){
-          $scope.top5Sales = stats.sort((a,b)=>{ return b.qt-a.qt }).slice(0, stats.length);
+          $scope.top5Sales = stats.sort((a,b)=>{ return b.sales-a.sales }).slice(0, stats.length);
           $scope.top5Revenue = stats.sort((a,b)=>{ return b.revenue-a.revenue }).slice(0, stats.length);
         }else{
-          $scope.top5Sales = stats.sort((a,b)=>{ return b.qt-a.qt }).slice(0, 5);
+          $scope.top5Sales = stats.sort((a,b)=>{ return b.sales-a.sales }).slice(0, 5);
           $scope.top5Revenue = stats.sort((a,b)=>{ return b.revenue-a.revenue }).slice(0, 5);
         }
       });
@@ -102,28 +102,37 @@ app.controller('dashboardController', function($scope){
   $scope.createChart = () => {
     let totalSales = {};
     let totalRevenue = {};
+    let topSales = {};
+    let topRevenue = {};
 
     new Promise((resolve, reject)=>{
       let thisMonth = new RegExp(new Date().toISOString().substring(0,7).replace("-", "\\-"),"i");
-      console.log(thisMonth)
       sales.find({'createdAt':{$regex:thisMonth}}, (err, lists)=>{
-        console.log(lists)
-        lists.forEach(x=>totalSales[x.createdAt]=(totalSales[x.createdAt]||0)+x.totalPrice)
-        lists.forEach(x=>totalRevenue[x.createdAt]=(totalRevenue[x.createdAt]||0)+x.totalRevenue)
-        console.log(totalRevenue)
+        lists.forEach(x=>totalSales[x.createdAt]=(totalSales[x.createdAt]||0)+x.totalPrice);
+        lists.forEach(x=>totalRevenue[x.createdAt]=(totalRevenue[x.createdAt]||0)+x.totalRevenue);
+
+        lists.forEach(x=>{
+          x.orders.forEach(y=>{
+            topSales[y.name]=(topSales[y.name]||0)+Number(y.qt);
+            topRevenue[y.name]=(topRevenue[y.name]||0)+(y.price-(Number(y.base_price)*Number(y.qt)));
+          });
+        });
+
+
         //createChart
+
         new Chart(document.getElementById("chart"), {
           type: 'line',
           data: {
-            labels: Object.keys(totalSales),
+            labels: $scope.getSortedValues(totalSales).keys.map(x => {return x.substring(8,10)}),
             datasets: [{
-                data: Object.values(totalSales),
+                data: $scope.getSortedValues(totalSales).values,
                 label: "Sales",
                 borderColor: "#3e95cd",
                 fill: false
               },
               {
-                  data: Object.values(totalRevenue),
+                  data:  $scope.getSortedValues(totalRevenue).values,
                   label: "Revenue",
                   borderColor: "#8e5ea2",
                   fill: false
@@ -132,17 +141,77 @@ app.controller('dashboardController', function($scope){
           options: {
             title: {
               display: true,
-              text: 'Total sales in a month'
+              text: 'Statistics in a month'
             }
           }
         });
-      })
+
+        //topSales in a month
+        new Chart(document.getElementById('chart-topSales'), {
+          type:'doughnut',
+          data:{
+            labels:$scope.getSortedKeys(topSales).labels.slice(0,5),
+            datasets: [{
+              data: $scope.getSortedKeys(topSales).values.slice(0,5),
+              backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+            }]
+          },
+          options: {
+            legend:{
+              display:false
+            },
+            title: {
+              display: true,
+              text: 'Top 5 Sales in a month'
+            }
+          }
+        });
+
+        //topSales in a month
+        new Chart(document.getElementById('chart-topRevenue'), {
+          type:'doughnut',
+          data:{
+            labels:$scope.getSortedKeys(topRevenue).labels.slice(0,5),
+            datasets: [{
+              data: $scope.getSortedKeys(topRevenue).values.slice(0,5),
+              backgroundColor: ["#c45850", "#e8c3b9", "#8e5ea2","#3cba9f","#3e95cd"],
+            }]
+          },
+          options: {
+            legend:{
+              display:false
+            },
+            title: {
+              display: true,
+              text: 'Top 5 Revenue in a month'
+            }
+          }
+        });
+
+
+      });
     }).then((data)=>{
       console.log('test', data);
     }).catch((err)=>{
       console.log(err);
     });
-  }
+  };
+  $scope.getSortedKeys = (obj) => {
+    let keys = []; for(var key in obj) keys.push(key);
+    let labels = keys.sort((a,b)=>{return obj[b]-obj[a];});
+    let values = []; labels.forEach(x=>{values.push(obj[x]);});
+    return {labels:labels, values:values};
+  };
+
+  $scope.getSortedValues = (obj) =>{
+    let keys = Object.keys(obj).map(x=>{return x;}).sort();
+    let values = [];
+    keys.forEach(x=>{
+      values.push(obj[x]);
+    });
+    return {keys:keys, values:values};
+  };
+
   $scope.loadNotif();
   $scope.loadStatistic();
   $scope.createChart();
@@ -151,7 +220,7 @@ app.controller('dashboardController', function($scope){
 app.controller('posController', function($scope){
   loadProducts({}).then((products)=>{
     document.getElementById('spinner').style.display = 'none';
-    $scope.inventories=products.filter(x=>x.status==true);
+    $scope.inventories=products.filter(x=>x.status==true&&x.quantity!=0);
     $scope.cart = [];
     $scope.sales = [];
     $scope.orders = [];
@@ -266,9 +335,19 @@ app.controller('posController', function($scope){
       if(err) console.log(err);
     });
 
-    console.log($scope.cart);
-    $scope.cart = [];
-    $scope.totalPrice = 0;
+    loadProducts({}).then((products)=>{
+      document.getElementById('spinner').style.display = 'none';
+      $scope.inventories=products.filter(x=>x.status==true&&x.quantity!=0);
+      $scope.cart = [];
+      $scope.sales = [];
+      $scope.orders = [];
+      $scope.totalPrice = 0;
+      $scope.inventories.forEach((x,i)=>{$scope.cart[i]={id:x._id, name:x.name, sell_price:x.sell_price, base_price:x.base_price, active:false, qt:0, price:0};});
+      $scope.$apply();
+    }).catch((err)=>{
+      if(err) console.log(err);
+    });
+
   };
   $scope.showDetailSale = (i) =>{
     if(document.getElementById(i).style.display === 'none'){

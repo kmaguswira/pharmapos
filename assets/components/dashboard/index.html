@@ -1,4 +1,4 @@
-<section class="tab-pane active fade in content" id="dashboard">
+<section class="tab-pane active fade in content" id="dashboard" style="font-size:11px !important">
   <div class="row">
     <div class="col-sm-6">
       <div class="panel panel-primary">
@@ -9,15 +9,15 @@
     </div>
     <div class="col-xs-6 col-sm-3">
       <div class="panel panel-danger">
-        <div class="panel-body" style="height:170px">
-
+        <div class="panel-body" style="height:170px; padding:0px">
+          <canvas id="chart-topSales" width="188" height="170"><canvas>
         </div>
       </div>
     </div>
     <div class="col-xs-6 col-sm-3">
       <div class="panel panel-warning">
-        <div class="panel-body" style="height:170px">
-
+        <div class="panel-body" style="height:170px; padding:0px;">
+          <canvas id="chart-topRevenue" width="188" height="170"><canvas>
         </div>
       </div>
     </div>
@@ -26,7 +26,7 @@
         <div class="panel-heading">
           <strong>Notifications</strong>
         </div>
-        <div class="panel-body" style="height:212px; padding:0px; overflow-y:scroll">
+        <div class="panel-body scrollbar" style="height:212px; padding:0px; overflow-y:scroll">
           <div class="alert" ng-class="{'alert-warning':x.nofStat=='Warning!', 'alert-danger':x.nofStat=='Danger!'}" style="margin-bottom:0px; border-radius:0px !important; padding:12px" ng-repeat="x in notifications">
             <strong>{{x.nofStat}}</strong> {{x.name}} - {{x.nofMsg}}
           </div>
@@ -38,7 +38,7 @@
         <div class="panel-heading">
           <strong>Top 5 Sales</strong>
         </div>
-        <div class="panel-body" style="height:75px; padding:0px; overflow-y:scroll">
+        <div class="panel-body scrollbar" style="height:75px; padding:0px; overflow-y:scroll">
           <div class="alert alert-success" style="margin-bottom:0px; border-radius:0px !important; padding:10px; font-size:11px" ng-repeat="x in top5Sales">
             <strong>{{x.name}}</strong> {{x.sales}}
           </div>
@@ -48,7 +48,7 @@
         <div class="panel-heading">
           <strong>Top 5 Revenue</strong>
         </div>
-        <div class="panel-body" style="height:75px; padding:0px; overflow-y:scroll">
+        <div class="panel-body scrollbar" style="height:75px; padding:0px; overflow-y:scroll">
           <div class="alert alert-info" style="margin-bottom:0px; border-radius:0px !important; padding:10px; font-size:11px" ng-repeat="x in top5Revenue">
             <strong>{{x.name}}</strong> {{x.revenue | currency: 'Rp. '}}
           </div>

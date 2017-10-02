@@ -3,7 +3,7 @@
 const {app, BrowserWindow} = require('electron');
 const url = require('url');
 
-require('electron-reload')(__dirname);
+// require('electron-reload')(__dirname);
 
 let win = null;
 let boot = () => {
@@ -14,7 +14,7 @@ let boot = () => {
     resizable:false
   });
   win.loadURL(`file://${__dirname}/index.html`);
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 };
 
 app.on('ready', boot);
